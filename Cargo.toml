@@ -4,10 +4,5 @@ version = "0.1.0"
 authors = ["Michał Czyż <mike@c2yz.com>", "Bartłomiej Szkodny"]
 edition = "2024"
 
-[profile.dev]
-panic = "abort"
-
-[profile.release]
-panic = "abort"
-
 [dependencies]
+bootloader_api = "0.11.10"
