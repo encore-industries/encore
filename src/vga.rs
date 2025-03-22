@@ -164,6 +164,8 @@ pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
     let mut writer = WRITER.lock();
     if let Some(writer) = writer.as_mut() {
-        writer.write_fmt(args).unwrap();
+        writer
+            .write_fmt(args)
+            .expect("VGA framebuffer should be already initialized at encore_main!");
     }
 }
