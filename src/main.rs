@@ -1,11 +1,14 @@
 #![no_std]
 #![no_main]
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test_runner)]
+#![reexport_test_harness_main = "test_main"]
 
 mod vga;
 
 use bootloader_api::{BootInfo, entry_point};
-use core::{fmt::Write, panic::PanicInfo};
-use vga::FrameBufferWriter;
+use core::panic::PanicInfo;
+use vga::{FrameBufferWriter, WRITER};
 
 entry_point!(encore_main);
 
@@ -14,11 +17,12 @@ fn encore_main(boot_info: &'static mut BootInfo) -> ! {
     let info = framebuffer.info();
     let framebuffer = framebuffer.buffer_mut();
 
-    let mut writer = FrameBufferWriter::new(framebuffer, info);
-    writer.clear();
-    writer
-        .write_str("Hello world!\nWelcome to encore OS\nversion: 0.1.0")
-        .unwrap();
+    let writer = FrameBufferWriter::new(framebuffer, info);
+    *WRITER.lock() = Some(writer);
+
+    let version = "0.1.0";
+    println!("Encore OS {}", version);
+    println!("Copyright (c) Encore Industries 2025");
 
     loop {}
 }
@@ -27,3 +31,11 @@ fn encore_main(boot_info: &'static mut BootInfo) -> ! {
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
+
+// #[cfg(test)]
+// pub fn test_runner(tests: &[&dyn Fn()]) {
+//     println!("Running {} tests", tests.len());
+//     for test in tests {
+//         test();
+//     }
+// }

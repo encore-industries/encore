@@ -4,6 +4,7 @@ use bootloader_api::info::{FrameBufferInfo, PixelFormat};
 use noto_sans_mono_bitmap::{
     FontWeight, RasterHeight, RasterizedChar, get_raster, get_raster_width,
 };
+use spin::Mutex;
 
 const LINE_SPACING: usize = 2;
 const LETTER_SPACING: usize = 0;
@@ -13,6 +14,8 @@ pub const FONT_WEIGHT: FontWeight = FontWeight::Regular;
 pub const CHAR_RASTER: RasterHeight = RasterHeight::Size16;
 pub const CHAR_WIDTH: usize = get_raster_width(FONT_WEIGHT, CHAR_RASTER);
 pub const CHAR_HEIGHT: usize = CHAR_RASTER.val();
+
+pub static WRITER: Mutex<Option<FrameBufferWriter>> = Mutex::new(None);
 
 struct Position {
     x: usize,
@@ -27,11 +30,14 @@ pub struct FrameBufferWriter {
 
 impl FrameBufferWriter {
     pub fn new(framebuffer: &'static mut [u8], info: FrameBufferInfo) -> Self {
-        Self {
+        let mut writer = Self {
             framebuffer,
             info,
             position: Position { x: 0, y: 0 },
-        }
+        };
+        writer.clear();
+
+        writer
     }
 
     fn newline(&mut self) {
@@ -137,5 +143,27 @@ impl fmt::Write for FrameBufferWriter {
             self.write_char(c);
         }
         Ok(())
+    }
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::vga::_print(format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! println {
+    () => {
+        $crate::print!("\n")
+    };
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments) {
+    use core::fmt::Write;
+    let mut writer = WRITER.lock();
+    if let Some(writer) = writer.as_mut() {
+        writer.write_fmt(args).unwrap();
     }
 }
