@@ -30,6 +30,7 @@ fn encore_main(boot_info: &'static mut BootInfo) -> ! {
     loop {}
 }
 
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
