@@ -24,18 +24,29 @@ fn encore_main(boot_info: &'static mut BootInfo) -> ! {
     println!("Encore OS {}", version);
     println!("Copyright (c) Encore Industries 2025");
 
+    #[cfg(test)]
+    test_main();
+
     loop {}
 }
 
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+fn panic(info: &PanicInfo) -> ! {
+    println!("{}", info);
     loop {}
 }
 
-// #[cfg(test)]
-// pub fn test_runner(tests: &[&dyn Fn()]) {
-//     println!("Running {} tests", tests.len());
-//     for test in tests {
-//         test();
-//     }
-// }
+#[test_case]
+fn trivial_assertion() {
+    print!("trivial assertion... ");
+    assert_eq!(1, 1);
+    println!("[ok]");
+}
+
+#[cfg(test)]
+pub fn test_runner(tests: &[&dyn Fn()]) {
+    println!("Running {} tests", tests.len());
+    for test in tests {
+        test();
+    }
+}
